@@ -9,9 +9,9 @@ import (
 func main() {
 	configureLog()
 
-	var start time.Time = time.Now()
+	start := time.Now()
 	// ...
-	var duration time.Duration = time.Since(start)
+	duration := time.Since(start)
 
 	logrus.Infoln("The program finished in ", duration)
 }
