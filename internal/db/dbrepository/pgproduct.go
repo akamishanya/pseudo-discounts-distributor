@@ -12,8 +12,8 @@ import (
 type PostgresProductRepository struct{}
 
 func (p *PostgresProductRepository) GetAllProducts() []dbentity.ProductEntity {
-	db := openConnection()
-	defer closeConnection(db)
+	db := p.openConnection()
+	defer p.closeConnection(db)
 
 	query := "SELECT * FROM products"
 	rows, err := db.Query(query)
@@ -43,7 +43,7 @@ func (p *PostgresProductRepository) GetAllProducts() []dbentity.ProductEntity {
 	return products
 }
 
-func openConnection() *sql.DB {
+func (p *PostgresProductRepository) openConnection() *sql.DB {
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_DBNAME")
@@ -65,7 +65,7 @@ func openConnection() *sql.DB {
 	return db
 }
 
-func closeConnection(db *sql.DB) {
+func (p *PostgresProductRepository) closeConnection(db *sql.DB) {
 	if err := db.Close(); err != nil {
 		logrus.Fatalln("Failed to close the database connection: ", err.Error())
 	}

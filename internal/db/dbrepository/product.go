@@ -6,8 +6,8 @@ import (
 )
 
 type ProductRepository interface {
-	openConnection()
-	closeConnection(db *sql.DB)
-
 	GetAllProducts() []dbentity.ProductEntity
+
+	openConnection() *sql.DB
+	closeConnection(db *sql.DB)
 }
