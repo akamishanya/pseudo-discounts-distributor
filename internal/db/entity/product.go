@@ -1,6 +1,6 @@
-package dbentity
+package entity
 
-type ProductEntity struct {
+type Product struct {
 	Id            int64
 	MarketplaceId int64
 	Name          string
