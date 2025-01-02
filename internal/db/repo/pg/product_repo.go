@@ -11,6 +11,7 @@ import (
 type ProductRepo struct {
 	isInitialized bool
 	db            *sql.DB
+	updateStmt    *sql.Stmt
 }
 
 func (productRepo *ProductRepo) GetAll() (products []entity.Product, err error) {
@@ -60,6 +61,40 @@ func (productRepo *ProductRepo) GetAll() (products []entity.Product, err error) 
 	return
 }
 
+func (productRepo *ProductRepo) UpdateById(product entity.Product) (rowsAffected int64, err error) {
+	if !productRepo.isInitialized {
+		err = fmt.Errorf("the repository is not initialized")
+		return
+	}
+
+	if productRepo.updateStmt == nil {
+		productRepo.updateStmt, err = productRepo.db.Prepare(
+			"UPDATE products SET marketplace_id = $1, name = $2, is_adult_only = $3, link = $4, image_id = $5 WHERE id = $6",
+		)
+
+		if err != nil {
+			return
+		}
+	}
+
+	result, err := productRepo.updateStmt.Exec(
+		product.MarketplaceId,
+		product.Name,
+		product.IsAdultOnly,
+		product.Link,
+		product.ImageId,
+		product.Id,
+	)
+
+	if err != nil {
+		return
+	}
+
+	rowsAffected, err = result.RowsAffected()
+
+	return
+}
+
 func NewProductRepo() (productRepo *ProductRepo, err error) {
 	connectionString, err := config.GetConnectionString()
 	if err != nil {
@@ -74,6 +109,7 @@ func NewProductRepo() (productRepo *ProductRepo, err error) {
 	productRepo = &ProductRepo{
 		isInitialized: true,
 		db:            db,
+		updateStmt:    nil,
 	}
 
 	return
@@ -87,8 +123,20 @@ func DisposeProductRepo(productRepo *ProductRepo) (err error) {
 
 	productRepo.isInitialized = false
 
+	if productRepo.updateStmt != nil {
+		err = productRepo.updateStmt.Close()
+		if err != nil {
+			return
+		}
+		productRepo.updateStmt = nil
+	}
+
 	if productRepo.db != nil {
 		err = productRepo.db.Close()
+		if err != nil {
+			return
+		}
+		productRepo.db = nil
 	}
 
 	return
